@@ -1,0 +1,9 @@
+app/.theos/
+app/packages/
+theos/
+build/
+*.o
+*.d
+__pycache__/
+*.pyc
+ipa-check/

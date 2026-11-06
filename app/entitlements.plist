@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Identidad. Debe coincidir con CFBundleIdentifier. -->
+	<key>application-identifier</key>
+	<string>com.loftur.iscan</string>
+	<key>com.apple.developer.team-identifier</key>
+	<string>com.loftur</string>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>com.loftur.iscan</string>
+	</array>
+
+	<!-- App de jailbreak: sin sandbox y con acceso a carpetas del usuario. -->
+	<key>platform-application</key>
+	<true/>
+	<key>com.apple.private.security.no-sandbox</key>
+	<true/>
+	<key>com.apple.security.exception.files.absolute-path.read-write</key>
+	<array>
+		<string>/var/mobile/Media/</string>
+		<string>/private/var/mobile/Media/</string>
+		<string>/var/mobile/Documents/</string>
+	</array>
+
+	<!-- Conexion directa a la WiFi del QR con MobileWiFi (API privada).
+	     En un dispositivo con AppSync Unified los entitlements de un binario
+	     firmado con ldid se respetan, asi que esto funciona sin cuenta Apple. -->
+	<key>com.apple.wifi.manager-access</key>
+	<true/>
+
+	<key>get-task-allow</key>
+	<true/>
+</dict>
+</plist>
