@@ -35,7 +35,7 @@ static NSString *SCUnescapeQR(NSString *text) {
     return out;
 }
 
-// Deshace los escapes de vCard: \n \, \; \\
+// Deshace los escapes de vCard (salto de linea, coma, punto y coma).
 static NSString *SCUnescapeVCard(NSString *text) {
     if ([text rangeOfString:@"\\"].location == NSNotFound) { return text; }
     NSMutableString *out = [NSMutableString stringWithCapacity:text.length];

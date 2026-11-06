@@ -72,7 +72,7 @@ static void SCWiFiScanCallback(WiFiDeviceClientRef device, CFArrayRef results,
     return shared;
 }
 
-+ (BOOL)load {
++ (BOOL)ensureLoaded {
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         SCWiFiHandle = dlopen("/System/Library/PrivateFrameworks/MobileWiFi.framework/MobileWiFi",
@@ -101,7 +101,7 @@ static void SCWiFiScanCallback(WiFiDeviceClientRef device, CFArrayRef results,
 }
 
 + (BOOL)isSupported {
-    return [self load];
+    return [self ensureLoaded];
 }
 
 + (NSString *)ssidFromNetwork:(WiFiNetworkRef)network {
@@ -112,7 +112,7 @@ static void SCWiFiScanCallback(WiFiDeviceClientRef device, CFArrayRef results,
 }
 
 + (NSString *)currentSSID {
-    if ([self load] && SCWiFiCopyCurrentNetwork) {
+    if ([self ensureLoaded] && SCWiFiCopyCurrentNetwork) {
         SCWiFiJoiner *joiner = [self shared];
         if (joiner.device) {
             WiFiNetworkRef network = SCWiFiCopyCurrentNetwork((WiFiDeviceClientRef)joiner.device);
@@ -171,7 +171,7 @@ static void SCWiFiScanCallback(WiFiDeviceClientRef device, CFArrayRef results,
     joiner.attempts = 0;
     joiner.scans = 0;
 
-    if (![self load] || joiner.ssid.length == 0) {
+    if (![self ensureLoaded] || joiner.ssid.length == 0) {
         [joiner finish:SCWiFiJoinStatusUnsupported
                 detail:@"Este dispositivo no permite conectar solo con la API privada."];
         return;
@@ -262,7 +262,7 @@ static void SCWiFiScanCallback(WiFiDeviceClientRef device, CFArrayRef results,
         return;
     }
     [self finish:SCWiFiJoinStatusNotFound
-          detail:@"No se encontró la red. Comprueba que esté al alcance."];
+          detail:@"No se encontrÃ³ la red. Comprueba que estÃ© al alcance."];
 }
 
 - (void)handleScanResults:(CFArrayRef)results {
@@ -296,7 +296,7 @@ static void SCWiFiScanCallback(WiFiDeviceClientRef device, CFArrayRef results,
     if (code != 0) {
         NSLog(@"[IScan] AssociateAsync devolvio %d", code);
         [self finish:SCWiFiJoinStatusFailed
-              detail:@"El iPad rechazó la conexión. La contraseña puede ser incorrecta."];
+              detail:@"El iPad rechazÃ³ la conexiÃ³n. La contraseÃ±a puede ser incorrecta."];
         return;
     }
 
@@ -316,13 +316,13 @@ static void SCWiFiScanCallback(WiFiDeviceClientRef device, CFArrayRef results,
     NSString *actual = [[self class] currentSSID];
     if (actual.length && [actual isEqualToString:self.ssid]) {
         [self finish:SCWiFiJoinStatusSuccess
-              detail:[NSString stringWithFormat:@"Conectado a «%@».", self.ssid]];
+              detail:[NSString stringWithFormat:@"Conectado a Â«%@Â».", self.ssid]];
         return;
     }
 
     if (self.attempts >= 28) {
         [self finish:SCWiFiJoinStatusTimeout
-              detail:@"La red no confirmó la conexión. Prueba desde Ajustes."];
+              detail:@"La red no confirmÃ³ la conexiÃ³n. Prueba desde Ajustes."];
     }
 }
 
