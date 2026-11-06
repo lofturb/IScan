@@ -40,10 +40,9 @@ LC_SEGMENT_64 = 0x19
 LC_BUILD_VERSION = 0x32
 LC_ENCRYPTION_INFO = 0x21
 
-ICONOS_ESPERADOS = (
-    "Icon-76.png", "Icon-76@2x.png", "Icon-83.5@2x.png",
-    "iTunesArtwork",
-)
+# Iconos que deben viajar dentro del .app. iTunesArtwork no se incluye: solo
+# hace falta para la distribucion Ad Hoc por OTA, no para instalar en el iPad.
+ICONOS_ESPERADOS = ("Icon-76.png", "Icon-76@2x.png", "Icon-83.5@2x.png")
 
 
 def descomponer_version(valor):
