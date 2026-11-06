@@ -728,13 +728,13 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
     NSError *error = nil;
     if ([device lockForConfiguration:&error]) {
         if (device.isFocusPointOfInterestSupported &&
-            device.isFocusModeSupported:AVCaptureFocusModeAutoFocus) {
+            [device isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
             device.focusPointOfInterest =
                 [self.previewLayer captureDevicePointOfInterestForPoint:punto];
             device.focusMode = AVCaptureFocusModeAutoFocus;
         }
         if (device.isExposurePointOfInterestSupported &&
-            device.isExposureModeSupported:AVCaptureExposureModeAutoExpose) {
+            [device isExposureModeSupported:AVCaptureExposureModeAutoExpose]) {
             device.exposurePointOfInterest =
                 [self.previewLayer captureDevicePointOfInterestForPoint:punto];
             device.exposureMode = AVCaptureExposureModeAutoExpose;
