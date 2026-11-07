@@ -1,7 +1,7 @@
 #import "SCAppDelegate.h"
 
 #import "SCTheme.h"
-#import "SCScannerViewController.h"
+#import "SCHomeViewController.h"
 
 @implementation SCAppDelegate
 
@@ -12,11 +12,11 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.window.backgroundColor = [SCTheme background];
 
-    // La camara ocupa toda la pantalla; la barra de navegacion solo hace falta
-    // en las fichas y en el historial, que se presentan como modales.
-    SCScannerViewController *scanner = [[SCScannerViewController alloc] init];
+    // La pantalla de inicio es la raiz. El escaner se abre encima a pantalla
+    // completa; las fichas y el historial se presentan como modales.
+    SCHomeViewController *inicio = [[SCHomeViewController alloc] init];
     UINavigationController *nav =
-        [[UINavigationController alloc] initWithRootViewController:scanner];
+        [[UINavigationController alloc] initWithRootViewController:inicio];
     nav.navigationBarHidden = YES;
 
     self.window.rootViewController = nav;

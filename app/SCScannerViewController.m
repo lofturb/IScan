@@ -18,6 +18,7 @@
                                        UINavigationControllerDelegate>
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *previewLayer;
+@property (nonatomic, strong) AVCaptureMetadataOutput *metadataOutput;
 @property (nonatomic, strong) dispatch_queue_t sessionQueue;
 
 @property (nonatomic, strong) UIView *previewContainer;
@@ -30,6 +31,7 @@
 
 @property (nonatomic, strong) UIView *topBar;
 @property (nonatomic, strong) CAGradientLayer *topGradient;
+@property (nonatomic, strong) UIButton *homeButton;
 @property (nonatomic, strong) UIView *bottomBar;
 @property (nonatomic, strong) CAGradientLayer *bottomGradient;
 @property (nonatomic, strong) UIButton *photoButton;
@@ -172,6 +174,18 @@
     subtitulo.frame = CGRectMake(24.0, 60.0, 320.0, 18.0);
     [self.topBar addSubview:subtitulo];
 
+    self.homeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.homeButton.backgroundColor = [[SCTheme surface] colorWithAlphaComponent:0.94];
+    self.homeButton.layer.cornerRadius = 18.0;
+    [self.homeButton setImage:[SCGlyph image:SCGlyphKindBack
+                                       size:17.0
+                                      color:[SCTheme textPrimary]]
+                     forState:UIControlStateNormal];
+    [self.homeButton addTarget:self
+                        action:@selector(goHome)
+              forControlEvents:UIControlEventTouchUpInside];
+    [self.topBar addSubview:self.homeButton];
+
     // Barra inferior con acciones.
     self.bottomBar = [[UIView alloc] initWithFrame:CGRectZero];
     self.bottomGradient = [CAGradientLayer layer];
@@ -292,9 +306,19 @@
     [CATransaction setDisableActions:YES];
     self.previewLayer.frame = bounds;
     [CATransaction commit];
+    [self updateVideoOrientation];
 
     self.topBar.frame = CGRectMake(0, 0, ancho, 110.0);
     self.topGradient.frame = self.topBar.bounds;
+
+    UILabel *tituloBarra = (UILabel *)[self.topBar viewWithTag:101];
+    UILabel *subtituloBarra = (UILabel *)[self.topBar viewWithTag:102];
+    CGFloat anchoTexto = ancho - 24.0 - 24.0 - 36.0 - 14.0;
+    if (anchoTexto < 120.0) { anchoTexto = 120.0; }
+    tituloBarra.frame = CGRectMake(24.0, 30.0, anchoTexto, 30.0);
+    subtituloBarra.frame = CGRectMake(24.0, 60.0, anchoTexto, 18.0);
+    self.homeButton.frame = CGRectMake(ancho - 24.0 - 36.0, 27.0, 36.0, 36.0);
+
     self.bottomBar.frame = CGRectMake(0, alto - 170.0, ancho, 170.0);
     self.bottomGradient.frame = self.bottomBar.bounds;
 
@@ -498,6 +522,7 @@
     AVCaptureMetadataOutput *output = [[AVCaptureMetadataOutput alloc] init];
     if ([session canAddOutput:output]) {
         [session addOutput:output];
+        self.metadataOutput = output;
 
         NSArray *deseados = @[
             AVMetadataObjectTypeQRCode,
@@ -538,7 +563,52 @@
         preview.frame = self.previewContainer.bounds;
         [self.previewContainer.layer insertSublayer:preview atIndex:0];
         self.previewLayer = preview;
+        [self updateVideoOrientation];
     });
+}
+
+// ---------------------------------------------------------------------------
+// Orientacion de la camara
+// ---------------------------------------------------------------------------
+
+- (AVCaptureVideoOrientation)currentVideoOrientation {
+    switch (self.interfaceOrientation) {
+        case UIInterfaceOrientationLandscapeLeft:
+            return AVCaptureVideoOrientationLandscapeLeft;
+        case UIInterfaceOrientationLandscapeRight:
+            return AVCaptureVideoOrientationLandscapeRight;
+        case UIInterfaceOrientationPortraitUpsideDown:
+            return AVCaptureVideoOrientationPortraitUpsideDown;
+        case UIInterfaceOrientationPortrait:
+        default:
+            return AVCaptureVideoOrientationPortrait;
+    }
+}
+
+- (void)updateVideoOrientation {
+    AVCaptureVideoOrientation orientacion = [self currentVideoOrientation];
+
+    AVCaptureConnection *conexionPreview = self.previewLayer.connection;
+    if (conexionPreview && conexionPreview.isVideoOrientationSupported) {
+        conexionPreview.videoOrientation = orientacion;
+    }
+
+    AVCaptureConnection *conexionMetadatos =
+        [self.metadataOutput connectionWithMediaType:AVMediaTypeVideo];
+    if (conexionMetadatos && conexionMetadatos.isVideoOrientationSupported) {
+        conexionMetadatos.videoOrientation = orientacion;
+    }
+}
+
+- (void)viewWillTransitionToSize:(CGSize)size
+       withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
+    [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+
+    [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+        [self updateVideoOrientation];
+    } completion:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+        [self updateVideoOrientation];
+    }];
 }
 
 - (void)startSession {
@@ -734,6 +804,15 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
                                                style:UIAlertActionStyleCancel
                                              handler:nil]];
     [self presentViewController:alerta animated:YES completion:nil];
+}
+
+- (void)goHome {
+    if (self.navigationController &&
+        self.navigationController.viewControllers.firstObject != self) {
+        [self.navigationController popViewControllerAnimated:YES];
+    } else {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }
 }
 
 - (void)showHistory {

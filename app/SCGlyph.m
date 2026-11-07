@@ -292,6 +292,18 @@ static void SCPolyline(CGContextRef ctx, const CGFloat *puntos, NSUInteger n) {
             CGContextStrokePath(ctx);
             break;
         }
+        case SCGlyphKindBack: {
+            const CGFloat atras[] = { 15.0, 5.0, 8.0, 12.0, 15.0, 19.0 };
+            SCPolyline(ctx, atras, 3);
+            CGContextStrokePath(ctx);
+            break;
+        }
+        case SCGlyphKindChevron: {
+            const CGFloat delante[] = { 9.0, 5.0, 16.0, 12.0, 9.0, 19.0 };
+            SCPolyline(ctx, delante, 3);
+            CGContextStrokePath(ctx);
+            break;
+        }
         default:
             break;
     }

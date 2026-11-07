@@ -29,6 +29,7 @@ IScan_FILES = \
 	SCWiFiJoiner.m \
 	SCImageScanner.m \
 	SCFileBrowserViewController.m \
+	SCHomeViewController.m \
 	SCScannerViewController.m \
 	SCResultViewController.m \
 	SCHistoryViewController.m
