@@ -125,7 +125,9 @@ static NSString *SCFechaCorta(NSDate *fecha) {
     self.tile.frame = CGRectMake(margen, 15.0, 44.0, 44.0);
 
     CGFloat qrLado = 44.0;
-    self.qrView.frame = CGRectMake(ancho - margen - qrLado, 15.0, qrLado, qrLado);
+    CGFloat derecha = ancho - margen;
+    if (self.accessoryType != UITableViewCellAccessoryNone) { derecha -= 26.0; }
+    self.qrView.frame = CGRectMake(derecha - qrLado, 15.0, qrLado, qrLado);
 
     CGFloat textoX = CGRectGetMaxX(self.tile.frame) + 14.0;
     CGFloat disponible = self.qrView.frame.origin.x - textoX - 10.0;

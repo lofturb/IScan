@@ -7,6 +7,15 @@ static const CGFloat SCQRCodeScale = 2.0;
 
 @implementation SCQRCode
 
++ (CIContext *)ciContext {
+    static CIContext *contexto = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        contexto = [CIContext contextWithOptions:nil];
+    });
+    return contexto;
+}
+
 + (NSCache *)cache {
     static NSCache *cache = nil;
     static dispatch_once_t once;
@@ -58,8 +67,7 @@ static const CGFloat SCQRCodeScale = 2.0;
     CGContextSetInterpolationQuality(contexto, kCGInterpolationNone);
     CGContextSetShouldAntialias(contexto, NO);
 
-    CIContext *ciContexto = [CIContext contextWithOptions:nil];
-    CGImageRef imagen = [ciContexto createCGImage:salida fromRect:extension];
+    CGImageRef imagen = [[self ciContext] createCGImage:salida fromRect:extension];
     if (imagen) {
         CGContextDrawImage(contexto, CGRectMake(margen, margen, lado, lado), imagen);
         CGImageRelease(imagen);
