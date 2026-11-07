@@ -6,6 +6,10 @@ directamente a la red.
 
 ## Qué incluye
 
+- **Pantalla de inicio** con un botón grande para escanear, accesos directos a
+  **Historial** y **Archivos**, y las últimas lecturas a un toque.
+- La vista de la cámara **se adapta al girar el iPad**: en horizontal ya no
+  aparece recortada ni girada, y la lectura sigue funcionando igual.
 - Lectura con la cámara de QR, Aztec, PDF417, Data Matrix y códigos de barras
   1D (Code 128, Code 39, EAN-13, EAN-8, UPC-E, ITF-14…).
 - Lectura de QR desde una foto de la galería y desde **archivos locales** del
