@@ -23,9 +23,12 @@ IScan_FILES = \
 	SCGlyph.m \
 	SCQRResult.m \
 	SCQRParser.m \
+	SCQRCode.m \
+	SCQRCard.m \
 	SCRecordStore.m \
 	SCWiFiJoiner.m \
 	SCImageScanner.m \
+	SCFileBrowserViewController.m \
 	SCScannerViewController.m \
 	SCResultViewController.m \
 	SCHistoryViewController.m

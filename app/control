@@ -1,6 +1,6 @@
 Package: com.loftur.iscan
 Name: IScan
-Version: 1.0.0
+Version: 1.1.0
 Architecture: iphoneos-arm
 Description: Lector de codigos QR para iOS 9: WiFi, enlaces, contactos, eventos y texto.
 Homepage: https://github.com/lofturb/IScan

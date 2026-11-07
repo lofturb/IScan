@@ -24,7 +24,9 @@ typedef NS_ENUM(NSInteger, SCGlyphKind) {
     SCGlyphKindShield,
     SCGlyphKindCheck,
     SCGlyphKindScan,
-    SCGlyphKindCamera
+    SCGlyphKindCamera,
+    SCGlyphKindFolder,
+    SCGlyphKindSave
 };
 
 // Iconos vectoriales dibujados en codigo (no hay SF Symbols en iOS 9 y asi

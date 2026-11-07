@@ -29,6 +29,19 @@ Desde la cámara se leen además Aztec, PDF417, Data Matrix y varios códigos de
 barras 1D. Las fotos de la galería se procesan con `CIDetector`, que en iOS 9
 solo detecta QR.
 
+## Historial, QR y archivos
+
+- **Todas las lecturas se guardan** en el historial de la app, con una
+  miniatura del QR. Se conservan las últimas 150 y se puede vaciar el historial.
+- En la ficha, el QR aparece **junto a su información**: en los enlaces se ve la
+  URL completa, y en las redes WiFi el SSID y la seguridad.
+- El botón **Compartir imagen del QR** genera una tarjeta con el QR y todos los
+  campos, lista para guardar en Fotos, enviar por correo o pasar a otro
+  dispositivo.
+- **Archivos** abre un navegador de imágenes del propio iPad (Documentos,
+  Descargas, DCIM, iCloud Drive y la carpeta de la app). Al tocar un PNG o JPG,
+  IScan busca el QR y lo trata como una lectura más.
+
 ## WiFi directa en iOS 9
 
 `NEHotspotConfiguration` llegó en iOS 11, así que IScan carga
@@ -103,14 +116,17 @@ AppSync Unified, iOS rechazará la instalación.
 ```
 app/
   main.m, SCAppDelegate.*          arranque y ventana
-  SCScannerViewController.*        cámara, ventana de escaneo, galería
-  SCResultViewController.*         ficha del código y acciones
-  SCHistoryViewController.*        historial de lecturas
+  SCScannerViewController.*        cámara, ventana de escaneo, galería y archivos
+  SCResultViewController.*         ficha del código, QR y acciones
+  SCHistoryViewController.*        historial de lecturas con miniatura
+  SCFileBrowserViewController.*    navegador de imágenes del iPad
   SCQRParser.*                     intérprete de todos los formatos
   SCQRResult.*                     modelo y serialización
+  SCQRCode.*                       generación del QR con CoreImage
+  SCQRCard.*                       tarjeta exportable (QR + información)
   SCRecordStore.*                  historial JSON en Documents
   SCWiFiJoiner.*                   puente con MobileWiFi
-  SCImageScanner.*                 QR en fotos (CIDetector)
+  SCImageScanner.*                 QR en fotos y archivos (CIDetector)
   SCTheme.*, SCGlyph.*             paleta, tipografía e iconos vectoriales
   Resources/                       Info.plist, iconos y launch images
 tools/
@@ -120,8 +136,9 @@ tools/
 ```
 
 El historial se guarda en `Documents/historial-iscan.json` y solo contiene el
-tipo, el texto original y la fecha; al cargarlo se vuelve a interpretar. Se
-conservan las últimas 150 lecturas y no sale del dispositivo.
+tipo, el texto original y la fecha; al cargarlo se vuelve a interpretar y el QR
+se dibuja de nuevo, así que no ocupa espacio en disco. Se conservan las últimas
+150 lecturas y no sale del dispositivo.
 
 ## Avisos
 

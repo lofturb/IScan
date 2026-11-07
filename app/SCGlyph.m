@@ -273,6 +273,25 @@ static void SCPolyline(CGContextRef ctx, const CGFloat *puntos, NSUInteger n) {
             CGContextStrokePath(ctx);
             break;
         }
+        case SCGlyphKindFolder: {
+            SCRRect(ctx, 3.0, 6.6, 18.0, 12.4, 2.6);
+            CGContextStrokePath(ctx);
+            const CGFloat pestana[] = { 3.0, 9.4, 3.0, 6.6, 9.2, 6.6, 11.0, 9.4, 21.0, 9.4 };
+            SCPolyline(ctx, pestana, 5);
+            CGContextStrokePath(ctx);
+            break;
+        }
+        case SCGlyphKindSave: {
+            SCLine(ctx, 12.0, 3.2, 12.0, 15.0);
+            CGContextStrokePath(ctx);
+            const CGFloat flecha[] = { 7.4, 10.4, 12.0, 15.2, 16.6, 10.4 };
+            SCPolyline(ctx, flecha, 3);
+            CGContextStrokePath(ctx);
+            const CGFloat bandeja[] = { 4.2, 16.8, 4.2, 20.6, 19.8, 20.6, 19.8, 16.8 };
+            SCPolyline(ctx, bandeja, 4);
+            CGContextStrokePath(ctx);
+            break;
+        }
         default:
             break;
     }

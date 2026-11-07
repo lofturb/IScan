@@ -8,4 +8,8 @@
 
 + (NSString *)payloadFromImage:(UIImage *)image;
 
+// Igual que el anterior, pero lee el archivo con ImageIO y lo reduce antes de
+// tenerlo entero en memoria: imprescindible con fotos grandes en un iPad mini.
++ (NSString *)payloadFromImageAtPath:(NSString *)path;
+
 @end

@@ -6,6 +6,8 @@
 #import "SCTheme.h"
 #import "SCGlyph.h"
 #import "SCWiFiJoiner.h"
+#import "SCQRCode.h"
+#import "SCQRCard.h"
 
 static SCGlyphKind SCGlyphForKind(SCQRKind kind) {
     switch (kind) {
@@ -32,6 +34,7 @@ static SCGlyphKind SCGlyphForKind(SCQRKind kind) {
 @property (nonatomic, strong) UIButton *primaryButton;
 @property (nonatomic, strong) UIButton *leftButton;
 @property (nonatomic, strong) UIButton *rightButton;
+@property (nonatomic, strong) UIButton *qrButton;
 @property (nonatomic, strong) UIActivityIndicatorView *spinner;
 @property (nonatomic, strong) NSMutableArray *valueLabels;
 @property (nonatomic, strong) NSMutableArray *eyeButtons;
@@ -156,6 +159,11 @@ static SCGlyphKind SCGlyphForKind(SCQRKind kind) {
     [self addSeparatorAtY:y width:ancho margin:margen];
     y += 18.0;
 
+    // QR junto a su informacion (en los enlaces, el destino completo).
+    y = [self addQRBlockAtY:y width:ancho margin:margen util:util] + 18.0;
+    [self addSeparatorAtY:y width:ancho margin:margen];
+    y += 18.0;
+
     // Campos.
     NSUInteger indice = 0;
     for (SCQRField *field in self.result.fields) {
@@ -217,7 +225,24 @@ static SCGlyphKind SCGlyphForKind(SCQRKind kind) {
     self.rightButton.frame = CGRectMake(margen + mitad + 10.0, y, util - mitad - 10.0, 46.0);
     [self.contentView addSubview:self.rightButton];
 
-    y = CGRectGetMaxY(self.leftButton.frame) + 24.0;
+    y = CGRectGetMaxY(self.leftButton.frame) + 10.0;
+
+    self.qrButton = [SCTheme buttonWithTitle:@"Compartir imagen del QR"
+                                  background:[SCTheme surfaceAlt]
+                                  foreground:[SCTheme textPrimary]
+                                        icon:[SCGlyph image:SCGlyphKindShare
+                                                        size:17.0
+                                                       color:[SCTheme textPrimary]]];
+    self.qrButton.titleLabel.font = [UIFont systemFontOfSize:14.5
+                                                      weight:UIFontWeightMedium];
+    self.qrButton.contentEdgeInsets = UIEdgeInsetsMake(12.0, 10.0, 12.0, 10.0);
+    self.qrButton.frame = CGRectMake(margen, y, util, 46.0);
+    [self.qrButton addTarget:self
+                      action:@selector(shareQRCard)
+            forControlEvents:UIControlEventTouchUpInside];
+    [self.contentView addSubview:self.qrButton];
+
+    y = CGRectGetMaxY(self.qrButton.frame) + 24.0;
 
     // Contenido original.
     UILabel *rawTitulo = [[UILabel alloc] initWithFrame:CGRectMake(margen, y, util, 14.0)];
@@ -249,6 +274,88 @@ static SCGlyphKind SCGlyphForKind(SCQRKind kind) {
 
     self.contentView.frame = CGRectMake(0, 0, ancho, y);
     self.scrollView.contentSize = CGSizeMake(ancho, y);
+}
+
+- (CGFloat)addQRBlockAtY:(CGFloat)top
+                   width:(CGFloat)ancho
+                  margin:(CGFloat)margen
+                    util:(CGFloat)util {
+    CGFloat qrLado = 126.0;
+    CGFloat alto = qrLado + 28.0;
+
+    UIView *caja = [SCTheme tileWithColor:[SCTheme surfaceAlt] size:0 radius:14.0];
+    caja.frame = CGRectMake(margen, top, util, alto);
+
+    UIImageView *qrVista = [[UIImageView alloc] initWithFrame:CGRectMake(14.0, 14.0,
+                                                                        qrLado, qrLado)];
+    qrVista.backgroundColor = [UIColor whiteColor];
+    qrVista.contentMode = UIViewContentModeScaleAspectFit;
+    qrVista.layer.cornerRadius = 8.0;
+    qrVista.layer.masksToBounds = YES;
+    qrVista.image = [SCQRCode imageForString:self.result.raw size:qrLado];
+    [caja addSubview:qrVista];
+
+    CGFloat infoX = CGRectGetMaxX(qrVista.frame) + 16.0;
+    CGFloat infoAncho = util - infoX - 16.0;
+
+    NSString *etiqueta = @"CÓDIGO QR";
+    NSString *principal = self.result.title ?: @"";
+    BOOL esEnlace = (self.result.kind == SCQRKindURL);
+
+    if (self.result.kind == SCQRKindWiFi) {
+        etiqueta = @"RED WIFI";
+        NSString *ssid = self.result.info[@"ssid"];
+        principal = ssid.length ? ssid : self.result.title;
+    } else if (esEnlace) {
+        etiqueta = @"ENLACE";
+        principal = self.result.action.length ? self.result.action : self.result.raw;
+    }
+
+    UILabel *tag = [[UILabel alloc] initWithFrame:CGRectMake(infoX, 18.0,
+                                                             infoAncho, 13.0)];
+    tag.attributedText = [[NSAttributedString alloc]
+        initWithString:etiqueta
+            attributes:@{
+                NSFontAttributeName: [UIFont systemFontOfSize:10.0
+                                                       weight:UIFontWeightSemibold],
+                NSForegroundColorAttributeName: [SCTheme accent],
+                NSKernAttributeName: @(0.9)
+            }];
+    [caja addSubview:tag];
+
+    UIFont *fuente = esEnlace ? [SCTheme monoFont:11.5]
+                              : [UIFont systemFontOfSize:15.0
+                                                  weight:UIFontWeightSemibold];
+    UILabel *valor = [SCTheme labelWithText:principal ?: @""
+                                       font:fuente
+                                      color:[SCTheme textPrimary]];
+    valor.numberOfLines = esEnlace ? 4 : 2;
+    valor.lineBreakMode = esEnlace ? NSLineBreakByTruncatingMiddle
+                                   : NSLineBreakByTruncatingTail;
+    CGSize valorTam = [valor sizeThatFits:CGSizeMake(infoAncho,
+                                                     esEnlace ? 60.0 : 40.0)];
+    CGFloat valorAlto = MIN(valorTam.height, esEnlace ? 56.0 : 38.0);
+    valor.frame = CGRectMake(infoX, 38.0, infoAncho, MAX(18.0, valorAlto));
+    [caja addSubview:valor];
+
+    NSString *pie = @"Comparte el QR con toda su información.";
+    if (esEnlace) {
+        pie = @"Comparte el QR con su enlace.";
+    } else if (self.result.kind == SCQRKindWiFi) {
+        pie = @"El botón principal intenta conectarse a esta red.";
+    }
+
+    UILabel *pieLabel = [SCTheme labelWithText:pie
+                                         font:[SCTheme tinyFont]
+                                        color:[SCTheme textTertiary]];
+    pieLabel.numberOfLines = 2;
+    CGSize pieTam = [pieLabel sizeThatFits:CGSizeMake(infoAncho, 40.0)];
+    CGFloat pieY = MAX(CGRectGetMaxY(valor.frame) + 8.0, 84.0);
+    pieLabel.frame = CGRectMake(infoX, pieY, infoAncho, MIN(pieTam.height, 34.0));
+    [caja addSubview:pieLabel];
+
+    [self.contentView addSubview:caja];
+    return CGRectGetMaxY(caja.frame);
 }
 
 - (CGFloat)addField:(SCQRField *)field
@@ -479,6 +586,30 @@ static SCGlyphKind SCGlyphForKind(SCQRKind kind) {
     if (!text.length) { return; }
     [[UIPasteboard generalPasteboard] setString:text];
     [SCTheme toast:message inView:self.view];
+}
+
+- (void)shareQRCard {
+    UIImage *imagen = [SCQRCard imageForResult:self.result];
+    if (!imagen) {
+        [self showAlert:@"No se pudo crear la imagen"
+                message:@"Este código no se puede dibujar como QR."];
+        return;
+    }
+
+    NSMutableArray *elementos = [NSMutableArray arrayWithObject:imagen];
+    if (self.result.raw.length) { [elementos addObject:self.result.raw]; }
+
+    UIActivityViewController *actividad =
+        [[UIActivityViewController alloc] initWithActivityItems:elementos
+                                          applicationActivities:nil];
+    if ([actividad respondsToSelector:@selector(popoverPresentationController)]) {
+        UIView *origen = self.qrButton ?: self.view;
+        actividad.popoverPresentationController.sourceView = origen;
+        actividad.popoverPresentationController.sourceRect = self.qrButton
+            ? self.qrButton.bounds
+            : CGRectMake(CGRectGetMidX(origen.bounds), CGRectGetMidY(origen.bounds), 1.0, 1.0);
+    }
+    [self presentViewController:actividad animated:YES completion:nil];
 }
 
 - (void)share {

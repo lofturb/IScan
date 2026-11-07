@@ -2,6 +2,7 @@
 
 #import "SCTheme.h"
 #import "SCGlyph.h"
+#import "SCQRCode.h"
 #import "SCRecordStore.h"
 
 static SCGlyphKind SCSymbolForKind(SCQRKind kind) {
@@ -62,6 +63,7 @@ static NSString *SCFechaCorta(NSDate *fecha) {
 
 @property (nonatomic, strong) UIView *tile;
 @property (nonatomic, strong) UIImageView *icon;
+@property (nonatomic, strong) UIImageView *qrView;
 @property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UILabel *subtitleLabel;
 
@@ -91,6 +93,13 @@ static NSString *SCFechaCorta(NSDate *fecha) {
         _icon.contentMode = UIViewContentModeScaleAspectFit;
         [_tile addSubview:_icon];
 
+        _qrView = [[UIImageView alloc] initWithFrame:CGRectZero];
+        _qrView.backgroundColor = [UIColor whiteColor];
+        _qrView.contentMode = UIViewContentModeScaleAspectFit;
+        _qrView.layer.cornerRadius = 6.0;
+        _qrView.layer.masksToBounds = YES;
+        [self.contentView addSubview:_qrView];
+
         _titleLabel = [SCTheme labelWithText:@""
                                        font:[SCTheme bodyFont]
                                       color:[SCTheme textPrimary]];
@@ -113,14 +122,17 @@ static NSString *SCFechaCorta(NSDate *fecha) {
 
     CGFloat ancho = self.contentView.bounds.size.width;
     CGFloat margen = 16.0;
-    self.tile.frame = CGRectMake(margen, 13.0, 44.0, 44.0);
+    self.tile.frame = CGRectMake(margen, 15.0, 44.0, 44.0);
+
+    CGFloat qrLado = 44.0;
+    self.qrView.frame = CGRectMake(ancho - margen - qrLado, 15.0, qrLado, qrLado);
 
     CGFloat textoX = CGRectGetMaxX(self.tile.frame) + 14.0;
-    CGFloat disponible = ancho - textoX - 34.0;
+    CGFloat disponible = self.qrView.frame.origin.x - textoX - 10.0;
     if (disponible < 40.0) { disponible = 40.0; }
 
-    self.titleLabel.frame = CGRectMake(textoX, 15.0, disponible, 21.0);
-    self.subtitleLabel.frame = CGRectMake(textoX, 37.0, disponible, 16.0);
+    self.titleLabel.frame = CGRectMake(textoX, 17.0, disponible, 21.0);
+    self.subtitleLabel.frame = CGRectMake(textoX, 39.0, disponible, 16.0);
 }
 
 - (void)configureWithResult:(SCQRResult *)result {
@@ -129,6 +141,8 @@ static NSString *SCFechaCorta(NSDate *fecha) {
     self.icon.image = [SCGlyph image:SCSymbolForKind(result.kind)
                                size:22.0
                               color:acento];
+    self.qrView.image = result.raw.length
+        ? [SCQRCode imageForString:result.raw size:44.0] : nil;
 
     NSString *titulo = SCTextoSinSaltos(result.title);
     if (!titulo.length) {
@@ -136,11 +150,19 @@ static NSString *SCFechaCorta(NSDate *fecha) {
     }
     self.titleLabel.text = titulo;
 
-    NSString *fecha = SCFechaCorta(result.date);
-    NSString *tipo = [SCQRResult displayNameForKind:result.kind];
-    self.subtitleLabel.text = fecha.length
-        ? [NSString stringWithFormat:@"%@ · %@", tipo, fecha]
-        : tipo;
+    // En los enlaces, la primera línea muestra el destino y la segunda el
+    // enlace completo junto a su QR; en el resto, tipo y fecha.
+    if (result.kind == SCQRKindURL && result.raw.length) {
+        self.subtitleLabel.text = SCTextoSinSaltos(result.raw);
+        self.subtitleLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
+    } else {
+        NSString *fecha = SCFechaCorta(result.date);
+        NSString *tipo = [SCQRResult displayNameForKind:result.kind];
+        self.subtitleLabel.text = fecha.length
+            ? [NSString stringWithFormat:@"%@ · %@", tipo, fecha]
+            : tipo;
+        self.subtitleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+    }
 }
 
 @end
@@ -172,7 +194,7 @@ static NSString *SCFechaCorta(NSDate *fecha) {
                                       UIViewAutoresizingFlexibleHeight;
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
-    self.tableView.rowHeight = 70.0;
+    self.tableView.rowHeight = 74.0;
     self.tableView.separatorColor = [SCTheme stroke];
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 72.0, 0, 0);
     self.tableView.backgroundColor = [SCTheme background];
@@ -237,7 +259,7 @@ static NSString *SCFechaCorta(NSDate *fecha) {
     [vista addSubview:titulo];
 
     UILabel *detalle = [SCTheme labelWithText:
-        @"Los códigos que leas aparecerán aquí, listos para volver a abrirlos."
+        @"Los códigos que leas se guardarán aquí con su QR, listos para reabrirlos."
                                            font:[SCTheme subheadFont]
                                           color:[SCTheme textSecondary]];
     detalle.textAlignment = NSTextAlignmentCenter;

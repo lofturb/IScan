@@ -11,6 +11,7 @@
 #import "SCImageScanner.h"
 #import "SCResultViewController.h"
 #import "SCHistoryViewController.h"
+#import "SCFileBrowserViewController.h"
 
 @interface SCScannerViewController () <AVCaptureMetadataOutputObjectsDelegate,
                                        UIImagePickerControllerDelegate,
@@ -32,6 +33,7 @@
 @property (nonatomic, strong) UIView *bottomBar;
 @property (nonatomic, strong) CAGradientLayer *bottomGradient;
 @property (nonatomic, strong) UIButton *photoButton;
+@property (nonatomic, strong) UIButton *fileButton;
 @property (nonatomic, strong) UIButton *historyButton;
 
 @property (nonatomic, strong) UIView *permissionCard;
@@ -39,6 +41,7 @@
 @property (nonatomic, strong) UILabel *permissionDetail;
 @property (nonatomic, strong) UIButton *permissionSettings;
 @property (nonatomic, strong) UIButton *permissionPhoto;
+@property (nonatomic, strong) UIButton *permissionFile;
 
 @property (nonatomic, assign) BOOL configured;
 @property (nonatomic, assign) BOOL handlingResult;
@@ -188,6 +191,17 @@
                forControlEvents:UIControlEventTouchUpInside];
     [self.bottomBar addSubview:self.photoButton];
 
+    self.fileButton = [SCTheme buttonWithTitle:@"Archivos"
+                                    background:[[SCTheme surface] colorWithAlphaComponent:0.94]
+                                    foreground:[SCTheme textPrimary]
+                                          icon:[SCGlyph image:SCGlyphKindFolder
+                                                          size:18.0
+                                                         color:[SCTheme textPrimary]]];
+    [self.fileButton addTarget:self
+                        action:@selector(chooseFile)
+              forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomBar addSubview:self.fileButton];
+
     self.historyButton = [SCTheme buttonWithTitle:@"Historial"
                                        background:[[SCTheme surface] colorWithAlphaComponent:0.94]
                                        foreground:[SCTheme textPrimary]
@@ -198,6 +212,11 @@
                            action:@selector(showHistory)
                  forControlEvents:UIControlEventTouchUpInside];
     [self.bottomBar addSubview:self.historyButton];
+
+    for (UIButton *boton in @[ self.photoButton, self.fileButton, self.historyButton ]) {
+        boton.titleLabel.font = [UIFont systemFontOfSize:15.0
+                                                  weight:UIFontWeightSemibold];
+    }
 }
 
 - (void)buildPermissionCard {
@@ -246,6 +265,17 @@
                              action:@selector(choosePhoto)
                    forControlEvents:UIControlEventTouchUpInside];
     [card addSubview:self.permissionPhoto];
+
+    self.permissionFile = [SCTheme buttonWithTitle:@"Elegir un archivo"
+                                        background:[SCTheme surfaceAlt]
+                                        foreground:[SCTheme textPrimary]
+                                              icon:[SCGlyph image:SCGlyphKindFolder
+                                                              size:18.0
+                                                             color:[SCTheme textPrimary]]];
+    [self.permissionFile addTarget:self
+                            action:@selector(chooseFile)
+                  forControlEvents:UIControlEventTouchUpInside];
+    [card addSubview:self.permissionFile];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -269,14 +299,17 @@
     self.bottomGradient.frame = self.bottomBar.bounds;
 
     CGFloat margen = 20.0;
-    CGFloat botonAncho = MIN(190.0, (ancho - margen * 3.0) / 2.0);
+    CGFloat separacion = 10.0;
+    CGFloat botonAncho = MIN(180.0, (ancho - margen * 2.0 - separacion * 2.0) / 3.0);
     CGFloat botonAlto = 52.0;
-    CGFloat total = botonAncho * 2.0 + 12.0;
+    CGFloat total = botonAncho * 3.0 + separacion * 2.0;
     CGFloat x0 = roundf((ancho - total) / 2.0);
-    self.photoButton.frame = CGRectMake(x0, alto - 34.0 - botonAlto, botonAncho, botonAlto);
-    self.historyButton.frame = CGRectMake(x0 + botonAncho + 12.0,
-                                          alto - 34.0 - botonAlto,
-                                          botonAncho, botonAlto);
+    CGFloat yBotones = alto - 34.0 - botonAlto;
+    self.photoButton.frame = CGRectMake(x0, yBotones, botonAncho, botonAlto);
+    self.fileButton.frame = CGRectMake(x0 + botonAncho + separacion,
+                                       yBotones, botonAncho, botonAlto);
+    self.historyButton.frame = CGRectMake(x0 + (botonAncho + separacion) * 2.0,
+                                          yBotones, botonAncho, botonAlto);
 
     // Ventana de escaneo: cuadrada y centrada, un poco por encima del centro.
     CGFloat menor = MIN(ancho, alto);
@@ -350,14 +383,15 @@
 
     CGSize tamano = self.view.bounds.size;
     CGFloat ancho = MIN(440.0, tamano.width - 48.0);
-    CGFloat alto = 286.0;
+    CGFloat alto = 340.0;
     self.permissionCard.frame = CGRectMake(roundf((tamano.width - ancho) / 2.0),
                                            roundf((tamano.height - alto) / 2.0),
                                            ancho, alto);
 
     self.permissionDetail.frame = CGRectMake(24.0, 64.0, ancho - 48.0, 92.0);
-    self.permissionSettings.frame = CGRectMake(24.0, alto - 118.0, ancho - 48.0, 48.0);
-    self.permissionPhoto.frame = CGRectMake(24.0, alto - 62.0, ancho - 48.0, 46.0);
+    self.permissionSettings.frame = CGRectMake(24.0, alto - 174.0, ancho - 48.0, 48.0);
+    self.permissionPhoto.frame = CGRectMake(24.0, alto - 118.0, ancho - 48.0, 46.0);
+    self.permissionFile.frame = CGRectMake(24.0, alto - 62.0, ancho - 48.0, 46.0);
 }
 
 // ---------------------------------------------------------------------------
@@ -647,6 +681,25 @@ didOutputMetadataObjects:(NSArray *)metadataObjects
         }
     }
     [self presentViewController:picker animated:YES completion:nil];
+}
+
+- (void)chooseFile {
+    SCFileBrowserViewController *navegador =
+        [[SCFileBrowserViewController alloc] init];
+
+    __weak typeof(self) weakSelf = self;
+    navegador.onPickPayload = ^(NSString *payload, NSString *fileName) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) { return; }
+        [strongSelf dismissViewControllerAnimated:YES completion:^{
+            [strongSelf handlePayload:payload];
+        }];
+    };
+
+    UINavigationController *nav =
+        [[UINavigationController alloc] initWithRootViewController:navegador];
+    nav.modalPresentationStyle = UIModalPresentationFormSheet;
+    [self presentViewController:nav animated:YES completion:nil];
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker

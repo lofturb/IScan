@@ -32,6 +32,28 @@
     return resultado ?: image;
 }
 
++ (NSString *)payloadFromImageAtPath:(NSString *)path {
+    if (!path.length) { return nil; }
+
+    NSURL *url = [NSURL fileURLWithPath:path];
+    CGImageSourceRef fuente = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (!fuente) { return nil; }
+
+    NSDictionary *opciones = @{
+        (id)kCGImageSourceCreateThumbnailFromImageAlways: @YES,
+        (id)kCGImageSourceCreateThumbnailWithTransform: @YES,
+        (id)kCGImageSourceThumbnailMaxPixelSize: @(1600)
+    };
+    CGImageRef miniatura = CGImageSourceCreateThumbnailAtIndex(
+        fuente, 0, (__bridge CFDictionaryRef)opciones);
+    CFRelease(fuente);
+    if (!miniatura) { return nil; }
+
+    UIImage *imagen = [UIImage imageWithCGImage:miniatura];
+    CGImageRelease(miniatura);
+    return [self payloadFromImage:imagen];
+}
+
 + (NSString *)payloadFromImage:(UIImage *)image {
     if (!image) { return nil; }
 
