@@ -1,20 +1,25 @@
-# IScan 1.0.0
+# IScan 1.1.0
 
-Primera versión de **IScan**, un lector de códigos QR para iOS 9 en iPad mini 1
-(armv7). Lee cualquier contenido y, cuando el código es de tipo WiFi, intenta
-conectarse directamente a la red.
+**IScan** es un lector de códigos QR para iOS 9 en iPad mini 1 (armv7). Lee
+cualquier contenido y, cuando el código es de tipo WiFi, intenta conectarse
+directamente a la red.
 
 ## Qué incluye
 
 - Lectura con la cámara de QR, Aztec, PDF417, Data Matrix y códigos de barras
   1D (Code 128, Code 39, EAN-13, EAN-8, UPC-E, ITF-14…).
-- Lectura de QR desde una foto de la galería.
+- Lectura de QR desde una foto de la galería y desde **archivos locales** del
+  iPad (Documentos, Descargas, DCIM, iCloud Drive y la carpeta de la app).
 - Interpretación de WiFi, enlaces, vCard/MECARD, eventos iCalendar, correo,
   teléfono, SMS, ubicaciones, `otpauth` y texto libre.
 - Conexión directa a la WiFi del QR con la API privada de iOS 9. Si falla,
   IScan copia la contraseña y abre Ajustes para pegarla.
 - Guardado de contactos y eventos con las hojas del sistema.
-- Historial de las últimas 150 lecturas, con opción de borrarlo.
+- Historial de las últimas 150 lecturas, con la **miniatura del QR**, el enlace
+  a la vista y opción de borrarlo.
+- En la ficha, el **QR junto a su información** (URL completa, SSID, etc.).
+- **Compartir o guardar una imagen del QR** con todos los datos, lista para
+  Fotos, correo o AirDrop.
 - Interfaz oscura en español, sin storyboards ni XIB.
 
 ## Instalación
